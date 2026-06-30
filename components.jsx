@@ -470,6 +470,23 @@ function Header({ route, navigate, cartCount, openCart, openLogin, isAuthed, use
   });
   const navRef = useRef(null);
 
+  // ===== Conteo regresivo al lanzamiento (01 Nov 2026, 00:00 hora local) =====
+  const LAUNCH = new Date(2026, 10, 1, 0, 0, 0).getTime();
+  function calcLeft() {
+    const diff = Math.max(0, LAUNCH - Date.now());
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { d, h, m, s, done: diff === 0 };
+  }
+  const [left, setLeft] = useState(calcLeft);
+  useEffect(() => {
+    const id = setInterval(() => setLeft(calcLeft()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const pad = (n) => String(n).padStart(2, "0");
+
   // Modo nocturno — aplica el atributo en <html> y lo recuerda
   useEffect(() => {
     const root = document.documentElement;
@@ -527,6 +544,28 @@ function Header({ route, navigate, cartCount, openCart, openLogin, isAuthed, use
   return (
     <React.Fragment>
       <div className="topstack" ref={(el) => { window.__topstack = el; }}>
+        <div className="dev-banner" role="status">
+          <div className="dev-banner-inner">
+            <span className="db-pulse" aria-hidden="true"></span>
+            <span className="db-tag">En desarrollo</span>
+            <span className="db-text">
+              Esta página está en fase de desarrollo · Lanzamiento oficial <strong>01·Nov·2026</strong> · Gracias por tu interés y comprensión
+            </span>
+          </div>
+          {!left.done ? (
+            <div className="db-countdown" aria-label="Tiempo restante para el lanzamiento">
+              <div className="db-cd-unit"><span className="db-cd-num">{left.d}</span><span className="db-cd-lbl">días</span></div>
+              <span className="db-cd-sep">:</span>
+              <div className="db-cd-unit"><span className="db-cd-num">{pad(left.h)}</span><span className="db-cd-lbl">hrs</span></div>
+              <span className="db-cd-sep">:</span>
+              <div className="db-cd-unit"><span className="db-cd-num">{pad(left.m)}</span><span className="db-cd-lbl">min</span></div>
+              <span className="db-cd-sep">:</span>
+              <div className="db-cd-unit"><span className="db-cd-num">{pad(left.s)}</span><span className="db-cd-lbl">seg</span></div>
+            </div>
+          ) : (
+            <div className="db-countdown db-cd-live">¡Ya estamos en línea!</div>
+          )}
+        </div>
         <header className="header">
           <div className="header-inner">
             <div className="header-left">
